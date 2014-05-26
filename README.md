@@ -6,3 +6,5 @@ This circuit board includes an analog frontend to measure the electrical conduct
 
 
 _Please note that this project is still in development_
+
+remotely added
