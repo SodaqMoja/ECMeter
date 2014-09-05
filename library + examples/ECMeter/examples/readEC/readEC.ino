@@ -1,4 +1,4 @@
-//This example prints the current temperature every second
+//This example prints the current EC value in uS every second
 
 #include <ECMeter.h>
 
@@ -10,6 +10,6 @@ void setup(void)
 
 void loop(void)
 {
-  Serial.println(getTemperature(),1);
+  Serial.println(getEC());
   delay(1000);
 }
