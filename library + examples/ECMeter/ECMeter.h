@@ -15,6 +15,7 @@ void setVoltage(double voltage);
 double getChannel1();
 double getChannel2();
 double getTemperature();
-int getEC();
+double getEC();
+double getResistance();
 
 #endif

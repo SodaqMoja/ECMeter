@@ -16,9 +16,9 @@ void loop(void)
   
   for(int i = 0; i < 10; i++)
   {
-    reading += getEC();
+    reading += getResistance();
     delay(250);
   }
   
-  Serial.println(reading/10.0);
+  Serial.println(reading/10.0,3);
 }
