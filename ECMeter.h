@@ -1,21 +1,36 @@
 #ifndef EC_H
 #define EC_H
 
-#define NO_INTERRUPT 1
-#define I2C_TIMEOUT 1000
+#include <Wire.h>
 
-#define SDA_PORT PORTD
-#define SDA_PIN 5
-#define SCL_PORT PORTD
-#define SCL_PIN 4
-#define ADDR 0xD0
+//I2C address of ECMeter
+#define EC_ADDR 0x6D
 
-double getVoltage();
-void setVoltage(double voltage);
-double getChannel1();
-double getChannel2();
-double getTemperature();
-double getEC();
-double getResistance();
+//Channel selection
+#define CH1 	0B00000000	//Conductivity measurement
+#define CH2 	0B00100000	//Not connected
+#define CH3 	0B01000000	//Temperature
+#define CH4 	0B01100000	//System voltage
+
+#define RDY 	0B10000000
+#define ONESHOT 0B00000000
+
+//Resolution selection
+#define BIT12 	0B00000000
+#define BIT14 	0B00000100
+#define BIT16 	0B00001000
+
+//Gain selection
+#define GAIN1 	0B00000000
+#define GAIN2 	0B00000001
+#define GAIN4 	0B00000010
+#define GAIN8 	0B00000011
+
+const float calibrationVal = 0.0505;
+
+float readChannel(uint8_t CHANNEL);
+float readTemperature();
+float readSystemVoltage();
+float readResistance();
 
 #endif

@@ -1,116 +1,70 @@
 #include "ECMeter.h"
-#include "../SoftI2CMaster/SoftI2CMaster.h"
+#include <Arduino.h>
 
-double systemVoltage;
+/*
+This method returns the analog voltage on any channel given.
+The configuration register layout looks like this:
 
-void setVoltage(double voltage)
+(RDY | CHANNEL | O/C | RESOLUTION | GAIN)
+
+bit 7:		Ready bit, will start new conversion
+bit 6-5:	Channel selection bit
+bit 4:		Conversion mode bit, set to 0 for one-shot conversion, 1 for continuous conversion
+bit 3-2:	Sample rate/resolution bit
+bit 1-0:	PGA gain selection
+*/
+float readChannel(uint8_t CHANNEL)
 {
-	systemVoltage = voltage;
-}
-
-double getVoltage()
-{
-	return systemVoltage;
-}
-
-double getChannel2()
-{
-  	i2c_start(ADDR|I2C_WRITE);
-	i2c_write(0xA8);
-
-  	i2c_rep_start(ADDR|I2C_READ);
-  	
-	byte h = i2c_read(false);
-  	byte l = i2c_read(false);
-  	byte r = i2c_read(true);
-  
-    i2c_stop();
-  
-  	long t = h << 8 |  l;
-  	
-	if (t >= 32768) t = 65536l - t;
-  	
-	double v = (double) t * 2.048/32768.0;
-
-	return v;
-}
-
-double getChannel1()
-{
-  	i2c_start(ADDR|I2C_WRITE);
-	i2c_write(0x88);
-
-  	i2c_rep_start(ADDR|I2C_READ);
-  	
-	byte h = i2c_read(false);
-  	byte l = i2c_read(false);
-  	byte r = i2c_read(true);
-  
-    i2c_stop();
-  
-  	long t = h << 8 |  l;
-  	
-	if (t >= 32768) t = 65536l - t;
-  	
-	double v = (double) t * 2.048/32768.0;
-
-	return v;
-}
-
-double getEC()
-{
-  	i2c_start(ADDR|I2C_WRITE);
-	i2c_write(0x88);
-
-  	i2c_rep_start(ADDR|I2C_READ);
-  	
-	byte h = i2c_read(false);
-  	byte l = i2c_read(false);
-  	byte r = i2c_read(true);
-  
-    i2c_stop();
-  
-  	long t = h << 8 |  l;
-  	
-	if (t >= 32768) t = 65536l - t;
-
-	double v = (double) t * 2.048/32768.0; //Get voltage
-	double gain = v / 0.05; //Calculate gain
+	Wire.beginTransmission(EC_ADDR);
+	Wire.write(RDY | CHANNEL | ONESHOT | BIT16 | GAIN1); //write configuration register
+	Wire.endTransmission();
 	
-	double resistance = 1000.0/(gain-1.0); //Get resistance across probes
-	double microsiemens = (1.0/resistance) * 1000000.0; //Convert to microsiemens
+	delay(75); //delay 75ms to give the ADC time to convert
+	
+	Wire.requestFrom(EC_ADDR, 3); //request 3 bytes
 
-	return (microsiemens * 0.285); 
+	uint8_t h = Wire.read(); //high bits
+	uint8_t l = Wire.read(); //low bits
+	uint8_t r = Wire.read(); //configuration register
+
+	uint16_t val = (h << 8) | l; //merge into 16-bit integer
+	return (float)(val * (2.048/32768)); //calculate voltage
 }
 
-
-
-double getResistance()
+/*
+Reads the temperature of the PCB (and surrounding temperature)
+*/
+float readTemperature()
 {
-  	i2c_start(ADDR|I2C_WRITE);
-	i2c_write(0x88);
+	float voltage = readChannel(CH3);
+	return (voltage - 0.5)*100;
+}
 
-  	i2c_rep_start(ADDR|I2C_READ);
-  	
-	byte h = i2c_read(false);
-  	byte l = i2c_read(false);
-  	byte r = i2c_read(true);
-  
-    i2c_stop();
-  
-  	long t = h << 8 |  l;
-  	
-	if (t >= 32768) t = 65536l - t;
+/*
+Reads the voltage of the system, typically 3.3 volt
+*/
+float readSystemVoltage()
+{
+	float voltage = readChannel(CH4);
+	return voltage*3.05;
+}
 
-	double v = (double) t * 2.048/32768.0; //Get voltage
-	double gain = v / 0.05; //Calculate gain
+/*
+Read resistance across probes
+
+The conductivity/resistivity can be calibrated by editing the calibration value in ECMeter.h
+If the resistance reads too low, increase the value of 'calibrationVal' and vice versa
+
+returns -1 if reading is invalid (when no resistor is connected for example)
+*/
+float readResistance()
+{
+	float voltage = readChannel(CH1);
+	float gain = voltage / calibrationVal;
+	float resistance = 1000.0/(gain-1.0);
 	
-	double resistance = 1000.0/(gain-1.0); //Get resistance across probes
-	
+	if(resistance < -1)
+		resistance = -1;
+		
 	return resistance;
-}
-
-double getTemperature()
-{
-	return (getChannel2()-0.5) * 100;
 }
