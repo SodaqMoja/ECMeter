@@ -8,11 +8,10 @@ This circuit board includes an analog frontend to measure the electrical conduct
 _Please note that this project is still in development_
 
 This is the Arduino library required to use the EC Meter easily. 
-Please note that this library requires the SoftI2CMaster library found here: https://github.com/felias-fogg/SoftI2CMaster
 
 
 ###Examples
 =====
-**readTemperature**
-*- Reads the onboard temperature sensor and prints the value every second*
+**demo**
+*- Reads the onboard temperature sensor, system voltage, resistance and prints the value every two seconds*
 
