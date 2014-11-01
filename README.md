@@ -10,7 +10,7 @@ This is the Arduino library required to use the EC Meter easily. The hardware fi
 ##Examples
 
 **demo**
-*- Reads the onboard temperature sensor, system voltage, resistance, conductivity and prints the value every two seconds*
+Reads the onboard temperature sensor, system voltage, resistance, conductivity and prints the value every two seconds.
 
 
 _Please note that this project is still in development_
