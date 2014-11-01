@@ -1,5 +1,10 @@
-#include "ECMeter.h"
 #include <Arduino.h>
+#include <Wire.h>
+
+#include "ECMeter.h"
+
+//I2C address of ECMeter
+#define EC_ADDR 0x6D
 
 /*
 This method returns the analog voltage on any channel given.

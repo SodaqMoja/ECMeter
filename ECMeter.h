@@ -1,11 +1,6 @@
 #ifndef EC_H
 #define EC_H
 
-#include <Wire.h>
-
-//I2C address of ECMeter
-#define EC_ADDR 0x6D
-
 //Channel selection
 #define CH1 	0B00000000	//Conductivity measurement
 #define CH2 	0B00100000	//Not connected
