@@ -26,11 +26,12 @@
 #define GAIN4 	0B00000010
 #define GAIN8 	0B00000011
 
-const float calibrationVal = 0.0505;
+const float calibrationVal = 0.049;
 
 float readChannel(uint8_t CHANNEL);
 float readTemperature();
 float readSystemVoltage();
 float readResistance();
+float readConductivity();
 
 #endif

@@ -68,3 +68,12 @@ float readResistance()
 		
 	return resistance;
 }
+
+/*
+Will convert a resistivity measurement into a conductivity measurement and apply calibration
+Returns conductivity in micro Siemens
+*/
+float readConductivity()
+{
+	return (1/readResistance() * 0.3453) * 1000000;
+}
