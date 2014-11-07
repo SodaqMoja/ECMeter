@@ -3,7 +3,12 @@
 
 void setup() 
 {                
-  Serial.begin(9600);  
+  Serial.begin(9600);
+  
+  //Reduce I2C clock speed to 12.5Khz, this way we can communicate over long wires
+  //Put this in setup() 
+  TWBR = 158;  
+  TWSR |= bit (TWPS0); 
 }
 
 void loop() 
@@ -22,6 +27,11 @@ void loop()
   Serial.print("Resistance: ");
   Serial.print(readResistance(), 0);
   Serial.println(" Ohms");
+  
+  //Read conductivity
+  Serial.print("Conductivity: ");
+  Serial.print(readConductivity(), 0);
+  Serial.println(" uS");
   
   Serial.println();
 
