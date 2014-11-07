@@ -6,6 +6,9 @@
 //I2C address of ECMeter
 #define EC_ADDR 0x6D
 
+
+const float ECMeter::calibrationVal = 0.049;
+
 ECMeter::ECMeter()
 {
 }

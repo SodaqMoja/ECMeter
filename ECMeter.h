@@ -21,8 +21,6 @@
 #define GAIN4 	0B00000010
 #define GAIN8 	0B00000011
 
-const float calibrationVal = 0.049;
-
 class ECMeter
 {
 public:
@@ -33,6 +31,9 @@ public:
   float readSystemVoltage();
   float readResistance();
   float readConductivity();
+private:
+
+  static const float calibrationVal;
 };
 
 #endif
