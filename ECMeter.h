@@ -23,10 +23,16 @@
 
 const float calibrationVal = 0.049;
 
-float readChannel(uint8_t CHANNEL);
-float readTemperature();
-float readSystemVoltage();
-float readResistance();
-float readConductivity();
+class ECMeter
+{
+public:
+  ECMeter();
+
+  float readChannel(uint8_t CHANNEL);
+  float readTemperature();
+  float readSystemVoltage();
+  float readResistance();
+  float readConductivity();
+};
 
 #endif

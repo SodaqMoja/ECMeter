@@ -6,6 +6,10 @@
 //I2C address of ECMeter
 #define EC_ADDR 0x6D
 
+ECMeter::ECMeter()
+{
+}
+
 /*
 This method returns the analog voltage on any channel given.
 The configuration register layout looks like this:
@@ -18,7 +22,7 @@ bit 4:		Conversion mode bit, set to 0 for one-shot conversion, 1 for continuous 
 bit 3-2:	Sample rate/resolution bit
 bit 1-0:	PGA gain selection
 */
-float readChannel(uint8_t CHANNEL)
+float ECMeter::readChannel(uint8_t CHANNEL)
 {
 	Wire.beginTransmission(EC_ADDR);
 	Wire.write(RDY | CHANNEL | ONESHOT | BIT16 | GAIN1); //write configuration register
@@ -39,7 +43,7 @@ float readChannel(uint8_t CHANNEL)
 /*
 Reads the temperature of the PCB (and surrounding temperature)
 */
-float readTemperature()
+float ECMeter::readTemperature()
 {
 	float voltage = readChannel(CH3);
 	return (voltage - 0.5)*100;
@@ -48,7 +52,7 @@ float readTemperature()
 /*
 Reads the voltage of the system, typically 3.3 volt
 */
-float readSystemVoltage()
+float ECMeter::readSystemVoltage()
 {
 	float voltage = readChannel(CH4);
 	return voltage*3.05;
@@ -62,7 +66,7 @@ If the resistance reads too low, increase the value of 'calibrationVal' and vice
 
 returns -1 if reading is invalid (when no resistor is connected for example)
 */
-float readResistance()
+float ECMeter::readResistance()
 {
 	float voltage = readChannel(CH1);
 	float gain = voltage / calibrationVal;
@@ -78,7 +82,7 @@ float readResistance()
 Will convert a resistivity measurement into a conductivity measurement and apply calibration
 Returns conductivity in micro Siemens
 */
-float readConductivity()
+float ECMeter::readConductivity()
 {
 	return (1/readResistance() * 0.3453) * 1000000;
 }
