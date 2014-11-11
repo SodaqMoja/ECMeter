@@ -6,6 +6,25 @@
 //I2C address of ECMeter
 #define EC_ADDR 0x6D
 
+//Channel selection
+#define CH1     0B00000000      //Conductivity measurement
+#define CH2     0B00100000      //Not connected
+#define CH3     0B01000000      //Temperature
+#define CH4     0B01100000      //System voltage
+
+#define RDY     0B10000000
+#define ONESHOT 0B00000000
+
+//Resolution selection
+#define BIT12   0B00000000
+#define BIT14   0B00000100
+#define BIT16   0B00001000
+
+//Gain selection
+#define GAIN1   0B00000000
+#define GAIN2   0B00000001
+#define GAIN4   0B00000010
+#define GAIN8   0B00000011
 
 const float ECMeter::calibrationVal = 0.049;
 
@@ -25,10 +44,10 @@ bit 4:		Conversion mode bit, set to 0 for one-shot conversion, 1 for continuous 
 bit 3-2:	Sample rate/resolution bit
 bit 1-0:	PGA gain selection
 */
-float ECMeter::readChannel(uint8_t CHANNEL)
+float ECMeter::readChannel(uint8_t channel)
 {
 	Wire.beginTransmission(EC_ADDR);
-	Wire.write(RDY | CHANNEL | ONESHOT | BIT16 | GAIN1); //write configuration register
+	Wire.write(RDY | (channel << 5) | ONESHOT | BIT16 | GAIN1); //write configuration register
 	Wire.endTransmission();
 	
 	delay(75); //delay 75ms to give the ADC time to convert
@@ -48,7 +67,7 @@ Reads the temperature of the PCB (and surrounding temperature)
 */
 float ECMeter::readTemperature()
 {
-	float voltage = readChannel(CH3);
+	float voltage = readChannel(2);
 	return (voltage - 0.5)*100;
 }
 
@@ -57,7 +76,7 @@ Reads the voltage of the system, typically 3.3 volt
 */
 float ECMeter::readSystemVoltage()
 {
-	float voltage = readChannel(CH4);
+	float voltage = readChannel(3);
 	return voltage*3.05;
 }
 
@@ -71,7 +90,7 @@ returns -1 if reading is invalid (when no resistor is connected for example)
 */
 float ECMeter::readResistance()
 {
-	float voltage = readChannel(CH1);
+	float voltage = readChannel(0);
 	float gain = voltage / calibrationVal;
 	float resistance = 1000.0/(gain-1.0);
 	
