@@ -11,7 +11,8 @@ public:
   float readResistance();
   float readConductivity();
 private:
-  float readChannel(uint8_t channel);
+  int16_t readChannel(uint8_t channel);
+  float readChannelVoltage(uint8_t channel);
 
   static const float calibrationVal;
 };

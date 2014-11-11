@@ -33,18 +33,19 @@ ECMeter::ECMeter()
 }
 
 /*
-This method returns the analog voltage on any channel given.
-The configuration register layout looks like this:
-
-(RDY | CHANNEL | O/C | RESOLUTION | GAIN)
-
-bit 7:		Ready bit, will start new conversion
-bit 6-5:	Channel selection bit
-bit 4:		Conversion mode bit, set to 0 for one-shot conversion, 1 for continuous conversion
-bit 3-2:	Sample rate/resolution bit
-bit 1-0:	PGA gain selection
-*/
-float ECMeter::readChannel(uint8_t channel)
+ * Read the raw value from the ADC channel
+ *
+ * The configuration register layout looks like this:
+ *
+ * (!RDY | CHANNEL | O/C | RESOLUTION | GAIN)
+ *
+ * bit 7:       Ready bit, will start new conversion
+ * bit 6-5:     Channel selection bit
+ * bit 4:       Conversion mode bit, set to 0 for one-shot conversion, 1 for continuous conversion
+ * bit 3-2:     Sample rate/resolution bit
+ * bit 1-0:     PGA gain selection
+ */
+int16_t ECMeter::readChannel(uint8_t channel)
 {
 	Wire.beginTransmission(EC_ADDR);
 	Wire.write(RDY | (channel << 5) | ONESHOT | BIT16 | GAIN1); //write configuration register
@@ -57,9 +58,19 @@ float ECMeter::readChannel(uint8_t channel)
 	uint8_t h = Wire.read(); //high bits
 	uint8_t l = Wire.read(); //low bits
 	uint8_t r = Wire.read(); //configuration register
+	// TODO We should wait until RDY
 
 	int16_t val = ((uint16_t)h << 8) | l; //merge into 16-bit integer
-	return (float)(val * (2.048/32768)); //calculate voltage
+	return val;
+}
+
+/*
+ * Read the analog voltage of the specified channel
+ */
+float ECMeter::readChannelVoltage(uint8_t channel)
+{
+  int16_t val = readChannel(channel);
+  return val * 2.048 / 32768.0; //calculate voltage
 }
 
 /*
@@ -67,7 +78,7 @@ Reads the temperature of the PCB (and surrounding temperature)
 */
 float ECMeter::readTemperature()
 {
-	float voltage = readChannel(2);
+	float voltage = readChannelVoltage(2);
 	return (voltage - 0.5)*100;
 }
 
@@ -76,7 +87,7 @@ Reads the voltage of the system, typically 3.3 volt
 */
 float ECMeter::readSystemVoltage()
 {
-	float voltage = readChannel(3);
+	float voltage = readChannelVoltage(3);
 	return voltage*3.05;
 }
 
@@ -90,7 +101,7 @@ returns -1 if reading is invalid (when no resistor is connected for example)
 */
 float ECMeter::readResistance()
 {
-	float voltage = readChannel(0);
+	float voltage = readChannelVoltage(0);
 	float gain = voltage / calibrationVal;
 	float resistance = 1000.0/(gain-1.0);
 	
