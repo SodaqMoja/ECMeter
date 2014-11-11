@@ -58,7 +58,7 @@ float ECMeter::readChannel(uint8_t channel)
 	uint8_t l = Wire.read(); //low bits
 	uint8_t r = Wire.read(); //configuration register
 
-	uint16_t val = (h << 8) | l; //merge into 16-bit integer
+	int16_t val = ((uint16_t)h << 8) | l; //merge into 16-bit integer
 	return (float)(val * (2.048/32768)); //calculate voltage
 }
 
