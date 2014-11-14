@@ -6,6 +6,25 @@
 //I2C address of ECMeter
 #define EC_ADDR 0x6D
 
+//Channel selection
+#define CH1     0B00000000      //Conductivity measurement
+#define CH2     0B00100000      //Not connected
+#define CH3     0B01000000      //Temperature
+#define CH4     0B01100000      //System voltage
+
+#define RDY     0B10000000
+#define ONESHOT 0B00000000
+
+//Resolution selection
+#define BIT12   0B00000000
+#define BIT14   0B00000100
+#define BIT16   0B00001000
+
+//Gain selection
+#define GAIN1   0B00000000
+#define GAIN2   0B00000001
+#define GAIN4   0B00000010
+#define GAIN8   0B00000011
 
 const float ECMeter::calibrationVal = 0.049;
 
@@ -14,21 +33,22 @@ ECMeter::ECMeter()
 }
 
 /*
-This method returns the analog voltage on any channel given.
-The configuration register layout looks like this:
-
-(RDY | CHANNEL | O/C | RESOLUTION | GAIN)
-
-bit 7:		Ready bit, will start new conversion
-bit 6-5:	Channel selection bit
-bit 4:		Conversion mode bit, set to 0 for one-shot conversion, 1 for continuous conversion
-bit 3-2:	Sample rate/resolution bit
-bit 1-0:	PGA gain selection
-*/
-float ECMeter::readChannel(uint8_t CHANNEL)
+ * Read the raw value from the ADC channel
+ *
+ * The configuration register layout looks like this:
+ *
+ * (!RDY | CHANNEL | O/C | RESOLUTION | GAIN)
+ *
+ * bit 7:       Ready bit, will start new conversion
+ * bit 6-5:     Channel selection bit
+ * bit 4:       Conversion mode bit, set to 0 for one-shot conversion, 1 for continuous conversion
+ * bit 3-2:     Sample rate/resolution bit
+ * bit 1-0:     PGA gain selection
+ */
+int16_t ECMeter::readChannel(uint8_t channel)
 {
 	Wire.beginTransmission(EC_ADDR);
-	Wire.write(RDY | CHANNEL | ONESHOT | BIT16 | GAIN1); //write configuration register
+	Wire.write(RDY | (channel << 5) | ONESHOT | BIT16 | GAIN1); //write configuration register
 	Wire.endTransmission();
 	
 	delay(75); //delay 75ms to give the ADC time to convert
@@ -38,9 +58,19 @@ float ECMeter::readChannel(uint8_t CHANNEL)
 	uint8_t h = Wire.read(); //high bits
 	uint8_t l = Wire.read(); //low bits
 	uint8_t r = Wire.read(); //configuration register
+	// TODO We should wait until RDY
 
-	uint16_t val = (h << 8) | l; //merge into 16-bit integer
-	return (float)(val * (2.048/32768)); //calculate voltage
+	int16_t val = ((uint16_t)h << 8) | l; //merge into 16-bit integer
+	return val;
+}
+
+/*
+ * Read the analog voltage of the specified channel
+ */
+float ECMeter::readChannelVoltage(uint8_t channel)
+{
+  int16_t val = readChannel(channel);
+  return val * 2.048 / 32768.0; //calculate voltage
 }
 
 /*
@@ -48,7 +78,7 @@ Reads the temperature of the PCB (and surrounding temperature)
 */
 float ECMeter::readTemperature()
 {
-	float voltage = readChannel(CH3);
+	float voltage = readChannelVoltage(2);
 	return (voltage - 0.5)*100;
 }
 
@@ -57,7 +87,7 @@ Reads the voltage of the system, typically 3.3 volt
 */
 float ECMeter::readSystemVoltage()
 {
-	float voltage = readChannel(CH4);
+	float voltage = readChannelVoltage(3);
 	return voltage*3.05;
 }
 
@@ -71,7 +101,7 @@ returns -1 if reading is invalid (when no resistor is connected for example)
 */
 float ECMeter::readResistance()
 {
-	float voltage = readChannel(CH1);
+	float voltage = readChannelVoltage(0);
 	float gain = voltage / calibrationVal;
 	float resistance = 1000.0/(gain-1.0);
 	
