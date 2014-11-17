@@ -7,10 +7,10 @@ void setup()
 {                
   Serial.begin(9600);
   
-  //Reduce I2C clock speed to 12.5Khz, this way we can communicate over long wires
-  //Put this in setup() 
-  TWBR = 158;  
-  TWSR |= bit (TWPS0); 
+  //Set I2C clock to 10Khz
+  bitSet(TWSR, TWPS0); 
+  bitClear(TWSR, TWPS1);  
+  TWBR = 98;
 }
 
 void loop() 
