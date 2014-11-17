@@ -1,6 +1,8 @@
 #ifndef EC_H
 #define EC_H
 
+#include <inttypes.h>
+
 class ECMeter
 {
 public:
