@@ -1,3 +1,7 @@
+/*! \file ECMeter.h
+ * \brief This file contains the class definition of ECMeter.
+ */
+
 #ifndef EC_H
 #define EC_H
 
@@ -8,7 +12,7 @@ class ECMeter
 public:
   ECMeter();
 
-  float readTemperature();
+  float readTemperature();       //!< reads the temperature
   float readSystemVoltage();
   float readResistance();
   float readConductivity();
