@@ -1,5 +1,7 @@
 /*! \file ECMeter.cpp
  * \brief This file contains the class implementation of ECMeter.
+ *
+ * The ECMeter uses the MPC3428, a 4 channel ADC with I2C interface.
  */
 
 /*
@@ -32,19 +34,24 @@
 
 //! \name Channel selection
 //@{
-#define CH1     0B00000000      //!< Conductivity measurement
+#define CH1     0B00000000      //!< Used for: Conductivity measurement
 #define CH2     0B00100000      //!< Not connected
-#define CH3     0B01000000      //!< Temperature
-#define CH4     0B01100000      //!< System voltage
+#define CH3     0B01000000      //!< Used for: Temperature
+#define CH4     0B01100000      //!< Used for: System voltage
 //@}
 
-//! \name OneShot or not
+//! \name READY bit
 //@{
 #define RDY     0B10000000
-#define ONESHOT 0B00000000
 //@}
 
-//! \name Resolution selection
+//! \name Continuous Conversion or One Shot
+//@{
+#define CONTCONV 0B00010000
+#define ONESHOT  0B00000000
+//@}
+
+//! \name Sample Rate Selection
 //@{
 #define BIT12   0B00000000
 #define BIT14   0B00000100
@@ -65,11 +72,10 @@ ECMeter::ECMeter()
 {
 }
 
-/*!
- * Read the raw value from the ADC channel
+/*! \brief Read the raw value from the ADC channel
  *
  * The configuration register layout looks like this:
- *
+ * \verbatim
  * (!RDY | CHANNEL | O/C | RESOLUTION | GAIN)
  *
  * bit 7:       Ready bit, will start new conversion
@@ -77,6 +83,7 @@ ECMeter::ECMeter()
  * bit 4:       Conversion mode bit, set to 0 for one-shot conversion, 1 for continuous conversion
  * bit 3-2:     Sample rate/resolution bit
  * bit 1-0:     PGA gain selection
+ * \endverbatim
  */
 int16_t ECMeter::readChannel(uint8_t channel)
 {
@@ -106,7 +113,7 @@ float ECMeter::readChannelVoltage(uint8_t channel)
   return val * 2.048 / 32768.0; //calculate voltage
 }
 
-/*! Reads the temperature of the PCB (and surrounding temperature)
+/*! \brief Reads the temperature of the PCB (and surrounding temperature)
 */
 float ECMeter::readTemperature()
 {

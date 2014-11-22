@@ -27,12 +27,13 @@
 
 #include <stdint.h>
 
+/*! ECMeter class */
 class ECMeter
 {
 public:
   ECMeter();
 
-  float readTemperature();       //!< reads the temperature
+  float readTemperature();
   float readSystemVoltage();
   float readResistance();
   float readConductivity();
