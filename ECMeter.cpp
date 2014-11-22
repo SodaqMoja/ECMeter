@@ -47,21 +47,21 @@ ECMeter::ECMeter()
  */
 int16_t ECMeter::readChannel(uint8_t channel)
 {
-	Wire.beginTransmission(EC_ADDR);
-	Wire.write(RDY | (channel << 5) | ONESHOT | BIT16 | GAIN1); //write configuration register
-	Wire.endTransmission();
-	
-	delay(75); //delay 75ms to give the ADC time to convert
-	
-	Wire.requestFrom(EC_ADDR, 3); //request 3 bytes
+  Wire.beginTransmission(EC_ADDR);
+  Wire.write(RDY | (channel << 5) | ONESHOT | BIT16 | GAIN1); //write configuration register
+  Wire.endTransmission();
 
-	uint8_t h = Wire.read(); //high bits
-	uint8_t l = Wire.read(); //low bits
-	uint8_t r = Wire.read(); //configuration register
-	// TODO We should wait until RDY
+  delay(75); //delay 75ms to give the ADC time to convert
 
-	int16_t val = ((uint16_t)h << 8) | l; //merge into 16-bit integer
-	return val;
+  Wire.requestFrom(EC_ADDR, 3); //request 3 bytes
+
+  uint8_t h = Wire.read(); //high bits
+  uint8_t l = Wire.read(); //low bits
+  uint8_t r = Wire.read(); //configuration register
+  // TODO We should wait until RDY
+
+  int16_t val = ((uint16_t) h << 8) | l; //merge into 16-bit integer
+  return val;
 }
 
 /*
@@ -78,8 +78,8 @@ Reads the temperature of the PCB (and surrounding temperature)
 */
 float ECMeter::readTemperature()
 {
-	float voltage = readChannelVoltage(2);
-	return (voltage - 0.5)*100;
+  float voltage = readChannelVoltage(2);
+  return (voltage - 0.5) * 100;
 }
 
 /*
@@ -87,8 +87,8 @@ Reads the voltage of the system, typically 3.3 volt
 */
 float ECMeter::readSystemVoltage()
 {
-	float voltage = readChannelVoltage(3);
-	return voltage*3.05;
+  float voltage = readChannelVoltage(3);
+  return voltage * 3.05;
 }
 
 /*
@@ -101,14 +101,14 @@ returns -1 if reading is invalid (when no resistor is connected for example)
 */
 float ECMeter::readResistance()
 {
-	float voltage = readChannelVoltage(0);
-	float gain = voltage / calibrationVal;
-	float resistance = 1000.0/(gain-1.0);
-	
-	if(resistance < -1)
-		resistance = -1;
-		
-	return resistance;
+  float voltage = readChannelVoltage(0);
+  float gain = voltage / calibrationVal;
+  float resistance = 1000.0 / (gain - 1.0);
+
+  if (resistance < -1)
+    resistance = -1;
+
+  return resistance;
 }
 
 /*
@@ -117,5 +117,5 @@ Returns conductivity in micro Siemens
 */
 float ECMeter::readConductivity()
 {
-	return (1/readResistance() * 0.3453) * 1000000;
+  return (1 / readResistance() * 0.3453) * 1000000;
 }
