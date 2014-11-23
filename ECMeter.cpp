@@ -91,14 +91,16 @@ int16_t ECMeter::readChannel(uint8_t channel)
   Wire.write(RDY | (channel << 5) | ONESHOT | BIT16 | GAIN1); //write configuration register
   Wire.endTransmission();
 
-  delay(75); //delay 75ms to give the ADC time to convert
+  uint8_t h;            //!< high bits
+  uint8_t l;            //!< low bits
+  uint8_t cc;           //!< configuration register
+  do {
+    Wire.requestFrom(EC_ADDR, 3); //request 3 bytes
 
-  Wire.requestFrom(EC_ADDR, 3); //request 3 bytes
-
-  uint8_t h = Wire.read(); //high bits
-  uint8_t l = Wire.read(); //low bits
-  uint8_t r = Wire.read(); //configuration register
-  // TODO We should wait until RDY
+    h = Wire.read(); //!< high bits
+    l = Wire.read(); //!< low bits
+    cc = Wire.read(); //!< configuration register
+  } while ((cc & RDY) == RDY);
 
   int16_t val = ((uint16_t) h << 8) | l; //merge into 16-bit integer
   return val;
