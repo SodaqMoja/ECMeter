@@ -91,15 +91,15 @@ int16_t ECMeter::readChannel(uint8_t channel)
   Wire.write(RDY | (channel << 5) | ONESHOT | BIT16 | GAIN1); //write configuration register
   Wire.endTransmission();
 
-  uint8_t h;            //!< high bits
-  uint8_t l;            //!< low bits
-  uint8_t cc;           //!< configuration register
+  uint8_t h;            // high bits
+  uint8_t l;            // low bits
+  uint8_t cc;           // configuration register
   do {
     Wire.requestFrom(EC_ADDR, 3); //request 3 bytes
 
-    h = Wire.read(); //!< high bits
-    l = Wire.read(); //!< low bits
-    cc = Wire.read(); //!< configuration register
+    h = Wire.read();
+    l = Wire.read();
+    cc = Wire.read();
   } while ((cc & RDY) == RDY);
 
   int16_t val = ((uint16_t) h << 8) | l; //merge into 16-bit integer
