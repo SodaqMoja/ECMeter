@@ -66,13 +66,25 @@
 #define GAIN8   0B00000011
 //@}
 
+//! Maximum time to wait for the ADC result (in milliseconds)
+// Don't make this too long, because the WDT interrupt could be 1000ms
+#define CONV_TIME_MAX   100
+
 const float ECMeter::calibrationVal = 0.049;
+
+static inline bool isTimedOut(uint32_t ts)
+{
+  return (long)(millis() - ts) >= 0;
+}
 
 ECMeter::ECMeter()
 {
 }
 
 /*! \brief Read the raw value from the ADC channel
+ *
+ * \param channel  the channel number 0..3 for CH1..CH4
+ * \returns the signed 16 bits ADC value
  *
  * The configuration register layout looks like this:
  * \verbatim
@@ -91,18 +103,23 @@ int16_t ECMeter::readChannel(uint8_t channel)
   Wire.write(RDY | (channel << 5) | ONESHOT | BIT16 | GAIN1); //write configuration register
   Wire.endTransmission();
 
+  uint32_t ts_max = millis() + CONV_TIME_MAX;
+  int16_t val = -0x7fff - 1;    // lowest, most negative value, indicates an error (timeout)
   uint8_t h;            // high bits
   uint8_t l;            // low bits
   uint8_t cc;           // configuration register
-  do {
+  while (!isTimedOut(ts_max)) {
     Wire.requestFrom(EC_ADDR, 3); //request 3 bytes
 
     h = Wire.read();
     l = Wire.read();
     cc = Wire.read();
-  } while ((cc & RDY) == RDY);
+    if ((cc & RDY) != RDY) {
+      val = ((uint16_t) h << 8) | l; //merge into 16-bit integer
+      break;
+    }
+  }
 
-  int16_t val = ((uint16_t) h << 8) | l; //merge into 16-bit integer
   return val;
 }
 

@@ -1,10 +1,11 @@
-#include "ECMeter.h"
+#include <Arduino.h>
 #include <Wire.h>
+#include "ECMeter.h"
 
 ECMeter ecm;
 
 void setup() 
-{                
+{
   Serial.begin(9600);
 
   /*
@@ -40,7 +41,7 @@ void setup()
 }
 
 void loop() 
-{  
+{
   Serial.println();
 
   //Read temperature in celsius
